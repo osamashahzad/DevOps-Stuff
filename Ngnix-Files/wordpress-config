@@ -1,0 +1,36 @@
+server {
+root /var/www/html;
+       # listen 80; 
+       # listen [::]:80;
+        server_name task.kryptomind.net;
+        location / {
+            proxy_pass         http://192.168.18.33:8001;
+            proxy_redirect     off;
+            proxy_set_header   Host $host;
+            proxy_set_header   X-Real-IP $remote_addr;
+            proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header   X-Forwarded-Host $server_name;
+            proxy_set_header   X-Forwarded-Proto $scheme;
+        }
+
+        listen 443 ssl; # managed by Certbot
+        ssl_certificate /etc/letsencrypt/live/kryptomind.net/fullchain.pem; # managed by Certbot
+        ssl_certificate_key /etc/letsencrypt/live/kryptomind.net/privkey.pem; # managed by Certbot
+        include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+        ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+}
+
+
+server {
+    if ($host = task.kryptomind.net) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    server_name task.kryptomind.net;
+    listen 80;
+    return 404; # managed by Certbot
+
+
+
+}

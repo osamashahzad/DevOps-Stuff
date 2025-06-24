@@ -1,0 +1,56 @@
+server {
+    server_name <URL_OF_SITE>;
+    root /var/www/your_domain;
+
+    index index.html index.htm index.php;
+
+    location / {
+       add_header Content-Type text/plain;
+       return 200 "<RETURN_FIXED_REPSONSE>";
+    }
+
+
+    location /accounts/ {
+       proxy_pass http://<IP_OF_THE_SYSTEM:PORT>;
+       proxy_http_version 1.1;
+       proxy_set_header Upgrade $http_upgrade;
+       proxy_set_header Connection 'upgrade';
+       proxy_set_header Host $host;
+    }
+    
+    location /exchanges/ {
+       proxy_pass http://<IP_OF_THE_SYSTEM:PORT>;
+       proxy_http_version 1.1;
+       proxy_set_header Upgrade $http_upgrade;
+       proxy_set_header Connection 'upgrade';
+       proxy_set_header Host $host;
+    }
+
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
+     }
+
+    location ~ /\.ht {
+        deny all;
+}
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/kryptomind.net/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/kryptomind.net/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}
+server {
+    if ($host = <URL_OF_SITE>) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    server_name <URL_OF_SITE>;
+    listen 80;
+    return 404; # managed by Certbot
+
+
+}

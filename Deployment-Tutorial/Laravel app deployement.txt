@@ -1,0 +1,81 @@
+Deploy a laravel App
+------------------------------
+1- Setup nginx
+	sudo apt update
+	sudo apt install nginx
+
+2- Setup MySql ( if required )
+	sudo apt install mysql-server
+	sudo mysql
+	ALTER USER 'root'@'localhost' IDENTIFIED BY 'PASSWORD';
+	flush privileges;
+	exit;
+	Create database <databasename>;
+	<import any dump if available>
+
+3- Install required php version - here installing php7.4
+	sudo apt update && sudo apt upgrade
+	sudo apt install software-properties-common
+	sudo add-apt-repository ppa:ondrej/php -y
+	sudo apt install php7.4
+	sudo apt install php7.4-{cli,common,curl,zip,gd,mysql,xml,mbstring,json,intl}
+	sudo apt-get install php7.4-fpm -y
+
+
+4- Clone Code in /var/www/
+	Go to Folder where code resides
+	create .env from .env.example and update databasename and password
+	
+	sudo composer install
+	sudo php artisan key:generate
+	sudo php artisan optimize
+	sudo php artisan route:cache
+	sudo chown -R www-data:www-data <path-to-where-code-resides>
+
+5- Create nginx file using following config
+			server {
+			listen 80;
+			server_name techvblogs.com;
+			root /var/www/html/public;
+
+			add_header X-Frame-Options "SAMEORIGIN";
+			add_header X-Content-Type-Options "nosniff";
+
+			index index.php;
+
+			charset utf-8;
+
+			location / {
+				try_files $uri $uri/ /index.php?$query_string;
+			}
+
+			location = /favicon.ico { access_log off; log_not_found off; }
+			location = /robots.txt  { access_log off; log_not_found off; }
+
+			error_page 404 /index.php;
+
+			location ~ \.php$ {
+				fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
+				fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+				include fastcgi_params;
+			}
+
+			location ~ /\.(?!well-known).* {
+				deny all;
+			}
+		}
+		
+		i- Replace Servername from the above config
+		ii- Give path to public directory in laravel project
+		iii- Set fastcgi_param according to php version herre it is 7.4
+		iv- Save and link files with sites-enabled
+		v- check nginx file sudo nginx -t
+		vi- reload nginx services
+		
+	check if any error occurs:Commands helpful in resolving some basic error
+	sudo chown -R $USER:www-data storage
+	sudo chown -R $USER:www-data bootstrap/cache
+	
+	chmod -R 775 storage
+	chmod -R 775 bootstrap/cache
+	https://stackoverflow.com/questions/23411520/how-to-fix-error-laravel-log-could-not-be-opened

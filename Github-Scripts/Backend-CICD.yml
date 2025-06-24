@@ -1,0 +1,79 @@
+on:
+  push:
+    branches:
+      - staging
+jobs:
+  build:
+    name: CI-Process
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pulling Latest Code
+        uses: actions/checkout@v3
+        
+      - name: Use Node Version 16
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          
+      - name: Installing NodeModules
+        run: |
+          npm i --force
+      
+      - name: Creating Build
+        run: |
+          npm run build    
+          
+      - name: Tar files
+        run: tar -cvf my_files.tar dist/ package.json start.sh  tsconfig.build.json
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: my-artifact
+          path: my_files.tar
+            
+  deploy:
+    needs: build
+    name: CD-Process
+    runs-on: [ self-hosted, vm ]
+    steps:
+      - name: Removing Old Build
+        run: |
+          rm -rf dist/
+      
+      - name: Downloading Build Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: my-artifact
+          path: |
+            ${{github.workspace}}
+      
+      - name: Extracting files
+        run : |
+          tar -xvf my_files.tar
+          
+      - name: Use Node Version 16
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          
+      - name: Installing Yarn and PM2
+        run: |
+          npm install --global yarn
+          npm install pm2@latest -g
+          
+      - name: Install Node_Modules
+        run: |
+          npm i --force
+          
+      # - name: Generating PM2 Process
+      #   run: |
+      #     pm2 start start.sh --name=CarMarketPlace-STG-Backend
+          
+      - name: Restarting PM2 Services
+        run: |
+          pm2 restart <PROCESS_NAME>
+          
+      - name: Cleaning Up Server
+        run:
+          rm -rf my_files.tar

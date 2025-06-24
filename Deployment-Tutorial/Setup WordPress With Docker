@@ -1,0 +1,16 @@
+1- Install docker
+2- Create a Docker-compose file and Use file available in the repo
+    i- Change env for setting up MYSQL
+        MYSQL_ROOT_PASSWORD: <PASSWORD>
+        MYSQL_DATABASE: <DB_NAME>
+        MYSQL_USER: <DB_USER_NAME>
+        MYSQL_PASSWORD: <DB_PASSWORD>
+    
+    ii- Change env to for setting up WORDPRESS same as MYSQL env
+
+3- Execute "docker compose up -d"
+4- After installing head to the url ip:port and install wordpress and
+    set the url by logging into wp-admin ->settings->general 
+    and change the domain URL. so that wordpress can be accessed using the url.
+
+5- Now headover to nginx and use this nginx config located in the repo
